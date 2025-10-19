@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Product from "../components/Product";
 import type { IProductProps } from "../types/product";
-import { Box, Container, Grid } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
 import { BASE_URL } from "../constants/baseurl";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/Auth/AuthContext";
@@ -27,7 +29,7 @@ const HomePage = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [setProductsInContext]);
 
   if (error)
     return (
