@@ -11,9 +11,11 @@ interface IAuthContext {
   token: string | null;
   productsInContext: IProductProps[] | null;
   login: (username: string, token: string) => void;
+  adminLogin: (username: string, token: string) => void;
   setProductsInContext: Dispatch<SetStateAction<IProductProps[] | null>>;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
 export const Context = createContext<IAuthContext>({
@@ -21,8 +23,10 @@ export const Context = createContext<IAuthContext>({
   token: null,
   productsInContext: null,
   login: () => {},
+  adminLogin: () => {},
   setProductsInContext: () => {},
   isAuthenticated: false,
+  isAdmin: false,
   logout: () => {},
 });
 
