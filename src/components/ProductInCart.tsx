@@ -1,122 +1,92 @@
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import DeleteIcon from "@mui/icons-material/Delete";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import type { IProductProps } from "../types/product";
-import { CardMedia } from "@mui/material";
 import { useCart } from "../context/Cart/CartContext";
-import ButtonGroup from "@mui/material/ButtonGroup";
+import { useLang } from "../i18n/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Trash2, Plus, Minus } from "lucide-react";
+import { toast } from "sonner";
+import type { IProductProps } from "../types/product";
 import type { ICartItem } from "../types/cart";
 
 export default function ProductInCart({
   _id,
   title,
   price,
-  stock,
   image,
 }: IProductProps) {
   const { updateItemInCart, removeItemInCart, cartItems } = useCart();
+  const { t } = useLang();
 
   const product = cartItems.find((item: ICartItem) => {
     if (typeof item.product !== "string") return item.product._id == _id;
   });
   const productQuantity = product?.quantity || 1;
 
-  const handleQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) return;
+  const handleUpdate = (qty: number) => {
+    updateItemInCart(_id, qty);
+    if (qty > productQuantity) {
+      toast.success(`"${title}" quantity updated`);
+    }
+  };
 
-    updateItemInCart(productId, quantity);
+  const handleRemove = () => {
+    removeItemInCart(_id);
+    toast.success(`"${title}" removed from cart`);
   };
 
   return (
-    <Card
-      sx={{
-        flex: "1",
-        boxShadow:
-          "-1px -2px 16px 0px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12)",
-        borderRadius: "20px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}
-    >
-      <CardMedia
-        sx={{
-          height: 200,
-          aspectRatio: " 16 / 9",
-          backgroundSize: "60%",
-          margin: "20px",
-        }}
-        image={image}
-        title="green iguana"
-      />
-      <CardContent sx={{ padding: "0 0 0 30px", marginRight: "auto" }}>
-        <Typography
-          gutterBottom
-          variant="h5"
-          component="div"
-          sx={{
-            mb: "20px",
-            height: "60px",
-            width: "100%",
-          }}
-        >
+    <div className="group relative flex flex-col rounded-2xl bg-card border border-white/5 overflow-hidden transition-all duration-300 hover:border-violet-500/30 hover:shadow-xl hover:shadow-violet-500/5">
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-muted/50 to-muted overflow-hidden">
+        <div
+          className="absolute inset-0 bg-contain bg-center bg-no-repeat p-6"
+          style={{ backgroundImage: `url(${image})` }}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 p-4">
+        <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-foreground/90">
           {title}
-        </Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {price} SYP
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ color: "text.secondary", mt: "10px" }}
-        >
-          {stock} In Stock
-        </Typography>
-      </CardContent>
-      <CardActions
-        sx={{
-          margin: "20px",
-          width: "100%",
-          paddingLeft: "30px",
-          boxSizing: "border-box",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <CardContent sx={{ p: 0 }}>
-          <Typography
-            variant="body2"
-            sx={{ fontSize: "0.9rem", color: "text.secondary" }}
+        </h3>
+        <span className="text-lg font-bold text-violet-400">
+          {price.toLocaleString()} SYP
+        </span>
+        <p className="text-xs text-muted-foreground">
+          {productQuantity} x {price.toLocaleString()} SYP
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {product?.quantity} {t("cart.inCart")}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between px-4 pb-4 gap-2">
+        <div className="flex items-center gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10"
+            onClick={() => handleUpdate(productQuantity + 1)}
           >
-            {`${productQuantity} x ${price}SYP`}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ fontSize: "0.9rem", color: "text.secondary" }}
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+          <span className="w-6 text-center text-sm font-medium">
+            {productQuantity}
+          </span>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10"
+            onClick={() => handleUpdate(Math.max(1, productQuantity - 1))}
           >
-            {product?.quantity} Item In Cart
-          </Typography>
-        </CardContent>
-        <ButtonGroup
-          sx={{ marginRight: "1rem" }}
-          variant="contained"
-          aria-label="Basic button group"
+            <Minus className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={handleRemove}
         >
-          <Button onClick={() => handleQuantity(_id, productQuantity + 1)}>
-            +
-          </Button>
-          <Button onClick={() => handleQuantity(_id, productQuantity - 1)}>
-            -
-          </Button>
-          <Button onClick={() => removeItemInCart(_id)} color="error">
-            <DeleteIcon sx={{ fontSize: "1.3rem", color: "white" }} />
-          </Button>
-        </ButtonGroup>
-      </CardActions>
-    </Card>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
   );
 }
