@@ -18,7 +18,7 @@ const OrderSuccess = () => {
       </p>
       <Button
         onClick={() => navigate("/")}
-        className="bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+        className="bg-primary hover:bg-primary/90 text-white border-0"
       >
         {t("success.home")}
       </Button>

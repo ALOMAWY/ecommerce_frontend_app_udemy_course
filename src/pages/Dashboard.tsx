@@ -14,7 +14,7 @@ import type { IProductProps } from "../types/product";
 
 const Dashboard = () => {
   const { token } = useAuth();
-  const { dir } = useLang();
+  const { dir, t } = useLang();
   const [products, setProducts] = useState<IProductProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ title: "", description: "", image: "", price: "", stock: "" });
@@ -36,7 +36,7 @@ const Dashboard = () => {
       const data = await res.json();
       setProducts(Array.isArray(data) ? data : []);
     } catch {
-      toast.error("Failed to load products");
+      toast.error(t("dashboard.loadError"));
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ const Dashboard = () => {
       const data = await res.json();
       return data.urls || [];
     } catch {
-      toast.error("Failed to upload images");
+      toast.error(t("dashboard.uploadError"));
       return [];
     } finally {
       setUploading(false);
@@ -97,7 +97,7 @@ const Dashboard = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title || !form.price || !form.stock) {
-      toast.error("Title, price, and stock are required");
+      toast.error(t("dashboard.required"));
       return;
     }
     setSubmitting(true);
@@ -119,11 +119,11 @@ const Dashboard = () => {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || "Failed to save product");
       }
-      toast.success(editingId ? "Product updated" : "Product created");
+      toast.success(editingId ? t("dashboard.updated") : t("dashboard.created"));
       resetForm();
       fetchProducts();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save product");
+      toast.error(err instanceof Error ? err.message : t("dashboard.saveError"));
     } finally {
       setSubmitting(false);
     }
@@ -143,17 +143,17 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+    if (!confirm(t("dashboard.deleteConfirm"))) return;
     try {
       const res = await fetch(`${BASE_URL}/product/${id}`, {
         method: "DELETE",
         headers,
       });
       if (!res.ok) throw new Error("Failed to delete product");
-      toast.success("Product deleted");
+      toast.success(t("dashboard.deleted"));
       fetchProducts();
     } catch {
-      toast.error("Failed to delete product");
+      toast.error(t("dashboard.deleteError"));
     }
   };
 
@@ -161,17 +161,17 @@ const Dashboard = () => {
     <div className="flex-1 p-6" style={{ direction: dir }}>
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-lg shadow-violet-500/25">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary shadow-lg shadow-primary/25">
             <Package className="h-6 w-6 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              {editingId ? "Edit Product" : "Product Dashboard"}
+              {editingId ? t("dashboard.editTitle") : t("dashboard.title")}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {editingId
-                ? "Update product details below"
-                : "Manage your product inventory"}
+                ? t("dashboard.editSubtitle")
+                : t("dashboard.subtitle")}
             </p>
           </div>
         </div>
@@ -181,31 +181,31 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-2 md:col-span-2">
                 <Label htmlFor="title" className="text-sm font-medium">
-                  Product Title
+                  {t("dashboard.productTitle")}
                 </Label>
                 <Input
                   id="title"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="Enter product title"
+                  placeholder={t("dashboard.titlePlaceholder")}
                   className="h-11"
                 />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
                 <Label htmlFor="description" className="text-sm font-medium">
-                  Description
+                  {t("dashboard.description")}
                 </Label>
                 <Textarea
                   id="description"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Enter product description"
+                  placeholder={t("dashboard.descriptionPlaceholder")}
                   className="min-h-[80px]"
                 />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
                 <Label className="text-sm font-medium">
-                  Images
+                  {t("dashboard.images")}
                 </Label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {images.map((url, i) => (
@@ -229,7 +229,7 @@ const Dashboard = () => {
                     id="image"
                     value={form.image}
                     onChange={(e) => setForm({ ...form, image: e.target.value })}
-                    placeholder="Or paste image URL"
+                    placeholder={t("dashboard.imageUrl")}
                     className="h-11 flex-1"
                   />
                   <input
@@ -248,13 +248,13 @@ const Dashboard = () => {
                     className="h-11"
                   >
                     <Upload className="h-4 w-4 ml-2" />
-                    {uploading ? "Uploading..." : "Upload"}
+                    {uploading ? t("dashboard.uploading") : t("dashboard.upload")}
                   </Button>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="price" className="text-sm font-medium">
-                  Price (SYP)
+                  {t("dashboard.price")}
                 </Label>
                 <Input
                   id="price"
@@ -269,7 +269,7 @@ const Dashboard = () => {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="stock" className="text-sm font-medium">
-                  Stock Quantity
+                  {t("dashboard.stock")}
                 </Label>
                 <Input
                   id="stock"
@@ -288,13 +288,13 @@ const Dashboard = () => {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+                className="bg-primary hover:bg-primary/90 text-white border-0"
               >
                 {submitting
-                  ? "Saving..."
+                  ? t("dashboard.saving")
                   : editingId
-                    ? "Update Product"
-                    : "Add Product"}
+                    ? t("dashboard.update")
+                    : t("dashboard.add")}
               </Button>
               {editingId && (
                 <Button
@@ -304,7 +304,7 @@ const Dashboard = () => {
                   className="text-muted-foreground"
                 >
                   <X className="h-4 w-4 ml-2" />
-                  Cancel
+                  {t("dashboard.cancel")}
                 </Button>
               )}
             </div>
@@ -313,7 +313,7 @@ const Dashboard = () => {
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">
-            All Products ({products.length})
+            {t("dashboard.allProducts")} ({products.length})
           </h2>
           <Button
             variant="ghost"
@@ -322,7 +322,7 @@ const Dashboard = () => {
             className="text-muted-foreground"
           >
             <RefreshCw className="h-4 w-4 ml-2" />
-            Refresh
+            {t("dashboard.refresh")}
           </Button>
         </div>
 
@@ -336,10 +336,10 @@ const Dashboard = () => {
           <Card className="p-12 text-center border-dashed border-white/10">
             <Package className="h-10 w-10 text-muted-foreground/40 mx-auto mb-4" />
             <p className="text-muted-foreground font-medium">
-              No products yet
+              {t("dashboard.noProducts")}
             </p>
             <p className="text-sm text-muted-foreground/60 mt-1">
-              Add your first product using the form above
+              {t("dashboard.addFirst")}
             </p>
           </Card>
         ) : (
@@ -367,7 +367,7 @@ const Dashboard = () => {
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {product.price.toLocaleString()} SYP &middot;{" "}
-                    {product.stock} in stock
+                    {product.stock} {t("dashboard.inStock")}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">

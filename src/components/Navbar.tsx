@@ -29,10 +29,10 @@ function Navbar() {
           className="flex items-center gap-3 cursor-pointer"
           onClick={() => navigate("/")}
         >
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600">
+          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary">
             <Hexagon className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+          <span className="text-lg font-bold tracking-tight text-foreground">
             TechHub
           </span>
         </div>
@@ -52,7 +52,7 @@ function Navbar() {
           >
             <ShoppingCart className="h-4 w-4" />
             {cartItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-violet-500 rounded-full">
+              <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-primary rounded-full">
                 {cartItems.length}
               </span>
             )}
@@ -64,7 +64,7 @@ function Navbar() {
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-sm font-medium text-foreground/80 hover:text-foreground">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-xs font-bold text-white">
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white">
                   {(username || "U").charAt(0).toUpperCase()}
                 </div>
                 <span className="hidden sm:inline">{username || t("nav.products")}</span>
@@ -96,7 +96,7 @@ function Navbar() {
               </Button>
               <Button
                 onClick={() => navigate("/register")}
-                className="bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+                className="bg-primary hover:bg-primary/90 text-white border-0"
               >
                 {t("nav.signup")}
               </Button>

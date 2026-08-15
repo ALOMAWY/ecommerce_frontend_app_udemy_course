@@ -14,29 +14,99 @@ export default function Product({
   price,
   stock,
   image,
-}: IProductProps) {
+  category,
+  view = "grid",
+}: IProductProps & { view?: "grid" | "list" }) {
   const { addItemToCart } = useCart();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { t } = useLang();
 
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isAuthenticated) addItemToCart(_id);
+    else navigate("/login");
+  };
+
+  const stockBadge = (
+    <Badge
+      variant={stock > 0 ? "default" : "destructive"}
+      className={`text-[10px] px-2 py-0.5 ${
+        stock > 0 ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20" : ""
+      }`}
+    >
+      {stock > 0 ? t("product.inStock") : t("product.outOfStock")}
+    </Badge>
+  );
+
+  if (view === "list") {
+    return (
+      <div
+        onClick={() => navigate(`/product/${_id}`)}
+        className="group relative flex items-center gap-4 rounded-2xl bg-card border border-white/5 overflow-hidden cursor-pointer transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 p-4"
+      >
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 bg-muted overflow-hidden rounded-xl flex-shrink-0">
+          <div
+            className="absolute inset-0 bg-contain bg-center bg-no-repeat p-3 transition-transform duration-500 group-hover:scale-110"
+            style={{ backgroundImage: `url(${image})` }}
+          />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-base leading-tight line-clamp-1 text-foreground/90 group-hover:text-foreground transition-colors">
+            {title}
+          </h3>
+          {category && (
+            <p className="text-xs text-muted-foreground mt-1 capitalize">{category}</p>
+          )}
+          {description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mt-1">
+              {description}
+            </p>
+          )}
+          <div className="flex items-center justify-between mt-2 gap-2">
+            <span className="text-lg font-bold text-primary whitespace-nowrap">
+              {price.toLocaleString()} SYP
+            </span>
+            {stockBadge}
+          </div>
+        </div>
+
+        <div className="flex-shrink-0">
+          <Button
+            size="sm"
+            onClick={handleAddToCart}
+            disabled={stock === 0}
+            className="bg-primary hover:bg-primary/90 text-white border-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Package className="h-4 w-4 ml-2" />
+            {t("product.addToCart")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={() => navigate(`/product/${_id}`)}
-      className="group relative flex flex-col rounded-2xl bg-card border border-white/5 overflow-hidden cursor-pointer transition-all duration-300 hover:border-violet-500/30 hover:shadow-xl hover:shadow-violet-500/5 hover:-translate-y-1"
+      className="group relative flex flex-col rounded-2xl bg-card border border-white/5 overflow-hidden cursor-pointer transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
     >
-      <div className="relative aspect-[4/3] bg-gradient-to-br from-muted/50 to-muted overflow-hidden">
+      <div className="relative aspect-[4/3] bg-muted overflow-hidden">
         <div
           className="absolute inset-0 bg-contain bg-center bg-no-repeat p-6 transition-transform duration-500 group-hover:scale-110"
           style={{ backgroundImage: `url(${image})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
       <div className="flex flex-col gap-2 p-4">
         <h3 className="font-semibold text-base leading-tight line-clamp-2 text-foreground/90 group-hover:text-foreground transition-colors">
           {title}
         </h3>
+
+        {category && (
+          <p className="text-xs text-muted-foreground capitalize">{category}</p>
+        )}
 
         {description && (
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
@@ -45,19 +115,10 @@ export default function Product({
         )}
 
         <div className="flex items-center justify-between mt-1 gap-2">
-          <span className="text-lg font-bold text-violet-400 whitespace-nowrap">
+          <span className="text-lg font-bold text-primary whitespace-nowrap">
             {price.toLocaleString()} SYP
           </span>
-          <Badge
-            variant={stock > 0 ? "default" : "destructive"}
-            className={`text-[10px] px-2 py-0.5 ${
-              stock > 0
-                ? "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                : ""
-            }`}
-          >
-            {stock > 0 ? t("product.inStock") : t("product.outOfStock")}
-          </Badge>
+          {stockBadge}
         </div>
 
         <p className="text-xs text-muted-foreground">
@@ -68,13 +129,9 @@ export default function Product({
       <div className="px-4 pb-4">
         <Button
           size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (isAuthenticated) addItemToCart(_id);
-            else navigate("/login");
-          }}
+          onClick={handleAddToCart}
           disabled={stock === 0}
-          className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/20 transition-all duration-200 hover:shadow-violet-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-primary hover:bg-primary/90 text-white border-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Package className="h-4 w-4 ml-2" />
           {t("product.addToCart")}

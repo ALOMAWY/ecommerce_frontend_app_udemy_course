@@ -75,7 +75,7 @@ const ProductPage = () => {
 
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           <div className="flex flex-col gap-3">
-            <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-muted/50 to-muted overflow-hidden border border-white/5">
+            <div className="relative aspect-square rounded-2xl bg-muted overflow-hidden border border-white/5">
               {!imageLoaded && (
                 <Skeleton className="absolute inset-0 rounded-2xl" />
               )}
@@ -100,7 +100,7 @@ const ProductPage = () => {
                     onClick={() => { setSelectedImage(url); setImageLoaded(false); }}
                     className={`w-16 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-colors ${
                       (selectedImage || product.image) === url
-                        ? "border-violet-500"
+                        ? "border-primary"
                         : "border-white/10 hover:border-white/30"
                     }`}
                   >
@@ -116,7 +116,7 @@ const ProductPage = () => {
 
           <div className="flex flex-col gap-6">
             <div>
-              <Badge className="bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 mb-3">
+              <Badge className="bg-primary/10 text-primary hover:bg-primary/20 mb-3">
                 {t("home.badge")}
               </Badge>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
@@ -125,7 +125,7 @@ const ProductPage = () => {
             </div>
 
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-violet-400">
+              <span className="text-3xl font-bold text-primary">
                 {product.price.toLocaleString()} SYP
               </span>
               <Badge
@@ -155,7 +155,7 @@ const ProductPage = () => {
                 size="lg"
                 disabled={product.stock === 0}
                 onClick={handleAddToCart}
-                className="bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25 h-12 text-base"
+                className="bg-primary hover:bg-primary/90 text-white border-0 h-12 text-base"
               >
                 <ShoppingCart className="h-5 w-5 ml-2" />
                 {cartItem
@@ -166,7 +166,7 @@ const ProductPage = () => {
 
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
-                <Package className={`h-5 w-5 text-violet-400 ${dir === "rtl" ? "ml-3" : "mr-3"}`} />
+                <Package className={`h-5 w-5 text-primary ${dir === "rtl" ? "ml-3" : "mr-3"}`} />
                 <div>
                   <p className="text-xs font-medium text-foreground/80">{t("product.freeShipping")}</p>
                   <p className="text-[10px] text-muted-foreground">{t("product.freeShippingDesc")}</p>

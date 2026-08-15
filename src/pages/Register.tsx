@@ -40,13 +40,13 @@ const Register = () => {
   const getFieldErrors = () => {
     const errors: string[] = [];
     if (data.firstName.trim() && data.firstName.trim().length < 2)
-      errors.push("First name must be at least 2 characters");
+      errors.push(t("register.nameShort"));
     if (data.lastName.trim() && data.lastName.trim().length < 2)
-      errors.push("Last name must be at least 2 characters");
+      errors.push(t("register.lastNameShort"));
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
-      errors.push("Enter a valid email address");
+      errors.push(t("register.emailInvalid"));
     if (data.password && data.password.length < 8)
-      errors.push("Password must be at least 8 characters");
+      errors.push(t("register.passwordShort"));
     return errors;
   };
 
@@ -93,7 +93,7 @@ const Register = () => {
 
       login(data.email, token);
       setData({ firstName: "", lastName: "", email: "", password: "" });
-      toast.success("Account created successfully!");
+      toast.success(t("register.success"));
       navigate("/");
     } catch {
       const msg = t("register.errorGeneric");
@@ -108,7 +108,7 @@ const Register = () => {
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 mb-4 shadow-lg shadow-violet-500/25">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary mb-4 shadow-lg shadow-primary/25">
             <UserPlus className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">{t("register.title")}</h1>
@@ -132,7 +132,7 @@ const Register = () => {
                 required
                 value={data.firstName}
                 onChange={onChange}
-                placeholder={dir === "rtl" ? "أحمد" : "John"}
+                placeholder={t("register.firstNamePlaceholder")}
                 className="h-11"
               />
             </div>
@@ -146,7 +146,7 @@ const Register = () => {
                 required
                 value={data.lastName}
                 onChange={onChange}
-                placeholder={dir === "rtl" ? "محمد" : "Doe"}
+                placeholder={t("register.lastNamePlaceholder")}
                 className="h-11"
               />
             </div>
@@ -163,7 +163,7 @@ const Register = () => {
               required
               value={data.email}
               onChange={onChange}
-              placeholder="you@example.com"
+              placeholder={t("register.emailPlaceholder")}
               className="h-11"
             />
           </div>
@@ -180,7 +180,7 @@ const Register = () => {
                 required
                 value={data.password}
                 onChange={onChange}
-                placeholder={dir === "rtl" ? "8 أحرف على الأقل" : "Min. 8 characters"}
+                placeholder={t("register.passwordPlaceholder")}
                 autoComplete="current-password"
                 className="h-11 pr-10"
                 style={dir === "rtl" ? { paddingRight: "0.75rem", paddingLeft: "2.5rem" } : undefined}
@@ -210,7 +210,7 @@ const Register = () => {
           <Button
             type="submit"
             disabled={!isFormValid()}
-            className="w-full h-11 bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+            className="w-full h-11 bg-primary hover:bg-primary/90 text-white border-0"
           >
             {loading ? t("register.creating") : t("register.create")}
           </Button>
@@ -219,7 +219,7 @@ const Register = () => {
             {t("register.haveAccount")}{" "}
             <Link
               to={"/login"}
-              className="text-violet-400 hover:text-violet-300 font-medium transition-colors"
+              className="text-primary hover:text-primary/80 font-medium transition-colors"
             >
               {t("register.signin")}
             </Link>

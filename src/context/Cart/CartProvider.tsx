@@ -3,12 +3,14 @@ import { CartContext } from "./CartContext";
 import type { ICartItem } from "../../types/cart";
 import { BASE_URL } from "../../constants/baseurl";
 import { useAuth } from "../Auth/AuthContext";
+import { useLang } from "../../i18n/LanguageContext";
 import { toast } from "sonner";
 
 export const CartProvider: FC<PropsWithChildren> = ({ children }) => {
   const [cartItems, setCartItem] = useState<ICartItem[]>([]);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const { token } = useAuth();
+  const { t } = useLang();
   const [orders, setOrders] = useState([]);
 
   const fetchCart = useCallback(async () => {
@@ -37,9 +39,9 @@ export const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       setOrders(data || []);
     } catch (err) {
       console.error("fetchOrders error:", err);
-      toast.error("Could not load orders");
+      toast.error(t("cart.loadOrdersError"));
     }
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     fetchCart();
@@ -63,7 +65,7 @@ export const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       setTotalAmount(cart.totalAmount);
     } catch (err) {
       console.error("addItemToCart error:", err);
-      toast.error("Failed to add item to cart");
+      toast.error(t("cart.addError"));
     }
   };
 
@@ -84,7 +86,7 @@ export const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       setTotalAmount(cart.totalAmount);
     } catch (err) {
       console.error("updateItemInCart error:", err);
-      toast.error("Failed to update cart");
+      toast.error(t("cart.updateError"));
     }
   };
 
@@ -104,7 +106,7 @@ export const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       setTotalAmount(cart.totalAmount);
     } catch (err) {
       console.error("removeItemInCart error:", err);
-      toast.error("Failed to remove item from cart");
+      toast.error(t("cart.removeError"));
     }
   };
 
@@ -121,10 +123,10 @@ export const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       await response.json();
       setCartItem([]);
       setTotalAmount(0);
-      toast.success("Cart cleared");
+      toast.success(t("cart.clearSuccess"));
     } catch (err) {
       console.error("clearCart error:", err);
-      toast.error("Failed to clear cart");
+      toast.error(t("cart.clearError"));
     }
   };
 

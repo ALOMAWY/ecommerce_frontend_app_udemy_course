@@ -27,7 +27,7 @@ const Checkout = () => {
 
   const handleOrder = async () => {
     if (!address.trim()) {
-      toast.error("Please enter a delivery address");
+      toast.error(t("checkout.addressRequired"));
       return;
     }
 
@@ -49,7 +49,7 @@ const Checkout = () => {
       }
 
       await response.json();
-      toast.success("Order placed successfully!");
+      toast.success(t("checkout.success"));
       navigate("/success_order");
       fetchOrders();
     } catch {
@@ -68,7 +68,7 @@ const Checkout = () => {
       <Card className="max-w-3xl mx-auto border-white/5 bg-card">
         <CardHeader>
           <div className="flex items-center justify-center gap-3">
-            <ShoppingCart className="h-6 w-6 text-violet-400" />
+            <ShoppingCart className="h-6 w-6 text-primary" />
             <CardTitle className="text-2xl text-center tracking-tight">
               {t("checkout.title")}
             </CardTitle>
@@ -116,7 +116,7 @@ const Checkout = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-2">
             <p className="font-semibold text-foreground/80">
               {t("checkout.totalAmount")}:{" "}
-              <span className="font-bold text-violet-400">
+              <span className="font-bold text-primary">
                 {totalAmount.toFixed(2)} SYP
               </span>
             </p>
@@ -136,7 +136,7 @@ const Checkout = () => {
               <Button
                 onClick={handleOrder}
                 disabled={!address.trim()}
-                className="w-full sm:w-auto bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white border-0"
               >
                 {t("checkout.confirm")}
               </Button>

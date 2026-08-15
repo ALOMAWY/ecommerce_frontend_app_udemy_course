@@ -18,7 +18,7 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { adminLogin } = useAuth();
-  const { dir } = useLang();
+  const { t, dir } = useLang();
 
   const from =
     (location.state as { from?: { pathname?: string } })?.from?.pathname ||
@@ -27,7 +27,7 @@ const AdminLogin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Email and password are required");
+      toast.error(t("admin.required"));
       return;
     }
     setLoading(true);
@@ -39,14 +39,14 @@ const AdminLogin = () => {
       });
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error || "Invalid admin credentials");
+        throw new Error(err.error || t("admin.invalid"));
       }
       const data = await res.json();
       adminLogin(data.email, data.token);
-      toast.success("Welcome admin!");
+      toast.success(t("admin.welcome"));
       navigate(from, { replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : t("admin.error"));
     } finally {
       setLoading(false);
     }
@@ -56,12 +56,12 @@ const AdminLogin = () => {
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 mb-4 shadow-lg shadow-amber-500/25">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-amber-600 mb-4 shadow-lg shadow-amber-600/25">
             <Shield className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Admin Login</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t("admin.title")}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Enter admin credentials to access the dashboard
+            {t("admin.subtitle")}
           </p>
         </div>
 
@@ -71,7 +71,7 @@ const AdminLogin = () => {
         >
           <div className="flex flex-col gap-2">
             <Label htmlFor="email" className="text-sm font-medium">
-              Email
+              {t("admin.email")}
             </Label>
             <Input
               id="email"
@@ -79,14 +79,14 @@ const AdminLogin = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@techhub.com"
+              placeholder={t("admin.emailPlaceholder")}
               className="h-11"
             />
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="password" className="text-sm font-medium">
-              Password
+              {t("admin.password")}
             </Label>
             <div className="relative">
               <Input
@@ -118,9 +118,9 @@ const AdminLogin = () => {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-11 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-0 shadow-lg shadow-amber-500/25"
+            className="w-full h-11 bg-amber-600 hover:bg-amber-700 text-white border-0"
           >
-            {loading ? "Signing in..." : "Sign in as Admin"}
+            {loading ? t("admin.signingIn") : t("admin.signInAs")}
           </Button>
         </form>
       </div>

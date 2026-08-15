@@ -21,20 +21,21 @@ export default function ProductInCart({
   const productQuantity = product?.quantity || 1;
 
   const handleUpdate = (qty: number) => {
+    if (qty < 1) return;
     updateItemInCart(_id, qty);
     if (qty > productQuantity) {
-      toast.success(`"${title}" quantity updated`);
+      toast.success(`"${title}" ${t("cart.quantityUpdated")}`);
     }
   };
 
   const handleRemove = () => {
     removeItemInCart(_id);
-    toast.success(`"${title}" removed from cart`);
+    toast.success(`"${title}" ${t("cart.removedFrom")}`);
   };
 
   return (
-    <div className="group relative flex flex-col rounded-2xl bg-card border border-white/5 overflow-hidden transition-all duration-300 hover:border-violet-500/30 hover:shadow-xl hover:shadow-violet-500/5">
-      <div className="relative aspect-[4/3] bg-gradient-to-br from-muted/50 to-muted overflow-hidden">
+    <div className="group relative flex flex-col rounded-2xl bg-card border border-white/5 overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
+      <div className="relative aspect-[4/3] bg-muted overflow-hidden">
         <div
           className="absolute inset-0 bg-contain bg-center bg-no-repeat p-6"
           style={{ backgroundImage: `url(${image})` }}
@@ -45,7 +46,7 @@ export default function ProductInCart({
         <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-foreground/90">
           {title}
         </h3>
-        <span className="text-lg font-bold text-violet-400">
+        <span className="text-lg font-bold text-primary">
           {price.toLocaleString()} SYP
         </span>
         <p className="text-xs text-muted-foreground">
@@ -72,8 +73,9 @@ export default function ProductInCart({
           <Button
             size="icon"
             variant="ghost"
-            className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10"
-            onClick={() => handleUpdate(Math.max(1, productQuantity - 1))}
+            disabled={productQuantity <= 1}
+            className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => handleUpdate(productQuantity - 1)}
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>

@@ -18,7 +18,7 @@ const Orders = () => {
       <Card className="max-w-3xl mx-auto border-white/5 bg-card">
         <CardHeader>
           <div className="flex items-center justify-center gap-3">
-            <ClipboardList className="h-6 w-6 text-violet-400" />
+            <ClipboardList className="h-6 w-6 text-primary" />
             <CardTitle className="text-2xl text-center tracking-tight">
               {t("orders.title")}
             </CardTitle>
@@ -74,7 +74,7 @@ const Orders = () => {
                 >
                   <p className="font-semibold text-foreground/80">
                     {t("orders.totalAmount")}:{" "}
-                    <span className="font-bold text-violet-400">
+                    <span className="font-bold text-primary">
                       {order.total.toFixed(2)} SYP
                     </span>
                   </p>

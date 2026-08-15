@@ -64,7 +64,7 @@ const Login = () => {
       }
 
       login(data.email, token);
-      toast.success("Welcome back!");
+      toast.success(t("login.welcome"));
       navigate("/");
     } catch {
       const msg = t("login.errorGeneric");
@@ -79,7 +79,7 @@ const Login = () => {
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 mb-4 shadow-lg shadow-violet-500/25">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary mb-4 shadow-lg shadow-primary/25">
             <LogIn className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">{t("login.title")}</h1>
@@ -103,7 +103,7 @@ const Login = () => {
               required
               value={data.email}
               onChange={onChange}
-              placeholder="you@example.com"
+              placeholder={t("login.emailPlaceholder")}
               className="h-11"
             />
           </div>
@@ -150,7 +150,7 @@ const Login = () => {
           <Button
             type="submit"
             disabled={!isFormValid()}
-            className="w-full h-11 bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+            className="w-full h-11 bg-primary hover:bg-primary/90 text-white border-0"
           >
             {loading ? t("login.signing") : t("login.signin")}
           </Button>
@@ -159,7 +159,7 @@ const Login = () => {
             {t("login.noAccount")}{" "}
             <Link
               to={"/register"}
-              className="text-violet-400 hover:text-violet-300 font-medium transition-colors"
+              className="text-primary hover:text-primary/80 font-medium transition-colors"
             >
               {t("login.createOne")}
             </Link>
