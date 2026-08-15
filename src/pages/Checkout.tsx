@@ -1,29 +1,35 @@
-import {
-  Box,
-  Button,
-  CardContent,
-  CardMedia,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { useCart } from "../context/Cart/CartContext";
 import { useNavigate } from "react-router-dom";
-import type { ICartItem } from "../types/cart";
+import { useCart } from "../context/Cart/CartContext";
+import { useAuth } from "../context/Auth/AuthContext";
+import { useLang } from "../i18n/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import React, { useState } from "react";
 import { BASE_URL } from "../constants/baseurl";
-import { useAuth } from "../context/Auth/AuthContext";
+import { toast } from "sonner";
+import { ShoppingCart, MapPin } from "lucide-react";
+import type { ICartItem } from "../types/cart";
 
 const Checkout = () => {
   const { cartItems, totalAmount, fetchOrders } = useCart();
   const { token } = useAuth();
+  const { t, dir } = useLang();
   const navigate = useNavigate();
 
   const [error, setError] = useState<boolean>(false);
   const [address, setAddress] = useState("");
 
   const handleOrder = async () => {
-    if (!address) return;
+    if (!address.trim()) {
+      toast.error("Please enter a delivery address");
+      return;
+    }
 
     try {
       const response = await fetch(`${BASE_URL}/cart/checkout`, {
@@ -32,125 +38,113 @@ const Checkout = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ address }),
+        body: JSON.stringify({ address: address.trim() }),
       });
 
       if (!response.ok) {
         setError(true);
-        throw new Error("Cannot To Post Checkout");
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message || t("error.generic"));
+        return;
       }
 
       await response.json();
+      toast.success("Order placed successfully!");
       navigate("/success_order");
-
       fetchOrders();
-    } catch (err) {
+    } catch {
       setError(true);
-      console.error(err);
+      toast.error(t("error.generic"));
     }
   };
 
-  if (error) console.error("Somthing went wrong");
+  if (cartItems.length === 0) {
+    navigate("/cart");
+    return null;
+  }
 
   return (
-    <Paper>
-      <Box>
-        <Typography
-          variant="h4"
-          sx={{
-            padding: "2rem",
-            textAlign: "center",
-            textTransform: "uppercase",
-          }}
-        >
-          Checkout
-        </Typography>
+    <div className="flex-1 p-4 md:p-6">
+      <Card className="max-w-3xl mx-auto border-white/5 bg-card">
+        <CardHeader>
+          <div className="flex items-center justify-center gap-3">
+            <ShoppingCart className="h-6 w-6 text-violet-400" />
+            <CardTitle className="text-2xl text-center tracking-tight">
+              {t("checkout.title")}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div
+            className="grid grid-cols-3 gap-4 px-2 py-2 font-semibold text-xs text-muted-foreground uppercase tracking-wider"
+            style={{ direction: dir }}
+          >
+            <span>{t("checkout.image")}</span>
+            <span className="text-center">{t("checkout.title2")}</span>
+            <span className={dir === "rtl" ? "text-left" : "text-right"}>{t("checkout.price")}</span>
+          </div>
+          <hr className="mb-2 border-white/5" />
 
-        <CardContent
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Typography sx={{ marginX: "2.5rem" }}> IMAGE</Typography>
-          <Typography sx={{ marginX: "5rem" }}> TITLE</Typography>
-          <Typography sx={{ marginX: "2.5rem" }}> PRICE</Typography>
-        </CardContent>
+          {cartItems.length > 0 &&
+            cartItems.map(({ product }: ICartItem, idx: number) => {
+              if (typeof product == "string") return null;
 
-        <hr />
+              return (
+                <div
+                  key={idx}
+                  className="grid grid-cols-3 gap-4 items-center px-2 py-3 border-b border-white/5"
+                  style={{ direction: dir }}
+                >
+                  <div
+                    className="w-16 h-16 bg-contain bg-center bg-no-repeat rounded-xl bg-muted"
+                    style={{ backgroundImage: `url(${product.image})` }}
+                  />
+                  <p className="text-center text-sm line-clamp-2">{product.title}</p>
+                  <p className={`text-sm font-semibold ${dir === "rtl" ? "text-left" : "text-right"}`}>
+                    {product.price.toLocaleString()} SYP
+                  </p>
+                </div>
+              );
+            })}
 
-        {cartItems.length &&
-          cartItems.map(({ product }: ICartItem) => {
-            if (typeof product == "string") {
-              setError(true);
-              return;
-            }
+          {error && (
+            <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 mt-4">
+              {t("error.generic")}
+            </p>
+          )}
 
-            return (
-              <CardContent
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderBottom: "1px solid ",
-                }}
-              >
-                <CardMedia
-                  image={product.image}
-                  sx={{ width: "4rem", height: "4rem", marginLeft: "2rem" }}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-2">
+            <p className="font-semibold text-foreground/80">
+              {t("checkout.totalAmount")}:{" "}
+              <span className="font-bold text-violet-400">
+                {totalAmount.toFixed(2)} SYP
+              </span>
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="address"
+                  placeholder={t("checkout.address")}
+                  value={address}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setAddress(e.target.value)
+                  }
+                  className="w-full pl-9"
                 />
-                <Typography> {product.title}</Typography>
-                <Typography sx={{ marginRight: "1.5rem" }}>
-                  {product.price} SYP
-                </Typography>
-              </CardContent>
-            );
-          })}
-        <CardContent
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            flexDirection: { xs: "column" },
-            justifyContent: "space-between",
-            paddingX: "2rem",
-          }}
-        >
-          <CardContent
-            sx={{
-              display: "flex",
-              gap: ".5rem",
-              alignItems: "center",
-              justifyContent: { sm: "space-between", xs: "space-between" },
-              width: { xs: "100%", sm: "100%" },
-            }}
-          >
-            <Typography sx={{ display: "flex", gap: "10px" }}>
-              <Typography>Total Amount :</Typography>
-              {totalAmount.toFixed(2)} SYP
-            </Typography>
-            <TextField
-              id="outlined-basic"
-              label="Delivary Address"
-              variant="outlined"
-              name="address"
-              sx={{ width: { xs: "50%" } }}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setAddress(e.target.value)
-              }
-            />
-          </CardContent>
-
-          <Button
-            sx={{ width: { sm: "100%", xs: "100%" } }}
-            variant="contained"
-            onClick={() => handleOrder()}
-          >
-            Confirm Order
-          </Button>
+              </div>
+              <Button
+                onClick={handleOrder}
+                disabled={!address.trim()}
+                className="w-full sm:w-auto bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+              >
+                {t("checkout.confirm")}
+              </Button>
+            </div>
+          </div>
         </CardContent>
-      </Box>
-    </Paper>
+      </Card>
+    </div>
   );
 };
 

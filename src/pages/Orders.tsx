@@ -1,88 +1,93 @@
-import { Box, CardContent, CardMedia, Paper, Typography } from "@mui/material";
 import { useCart } from "../context/Cart/CartContext";
-
-
+import { useLang } from "../i18n/LanguageContext";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { PackageOpen, ClipboardList } from "lucide-react";
 import type { IOrderItem } from "../types/order";
 
 const Orders = () => {
   const { orders } = useCart();
-
-
+  const { t, dir } = useLang();
 
   return (
-    <Paper>
-      <Typography
-        variant="h4"
-        sx={{
-          padding: "2rem",
-          textAlign: "center",
-          textTransform: "uppercase",
-        }}
-      >
-        Your Orders
-      </Typography>
-      <Box>
-        {orders &&
-          orders.map((order, index) => (
-            <>
-              <CardContent
-                key={index}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Typography sx={{ marginX: "2.5rem" }}> IMAGE</Typography>
-                <Typography sx={{ marginX: "5rem" }}> TITLE</Typography>
-                <Typography sx={{ marginX: "2.5rem" }}> PRICE</Typography>
-              </CardContent>
-              <hr />
+    <div className="flex-1 p-4 md:p-6">
+      <Card className="max-w-3xl mx-auto border-white/5 bg-card">
+        <CardHeader>
+          <div className="flex items-center justify-center gap-3">
+            <ClipboardList className="h-6 w-6 text-violet-400" />
+            <CardTitle className="text-2xl text-center tracking-tight">
+              {t("orders.title")}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {orders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-card border border-white/5 mb-4">
+                <PackageOpen className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground text-lg">
+                {t("orders.empty")}
+              </p>
+            </div>
+          ) : (
+            orders.map((order, index) => (
+              <div key={index} className="mb-8 last:mb-0">
+                <div
+                  className="grid grid-cols-3 gap-4 px-2 py-2 font-semibold text-xs text-muted-foreground uppercase tracking-wider"
+                  style={{ direction: dir }}
+                >
+                  <span>{t("orders.image")}</span>
+                  <span className="text-center">{t("orders.title2")}</span>
+                  <span className={dir === "rtl" ? "text-left" : "text-right"}>{t("orders.price")}</span>
+                </div>
+                <hr className="mb-2 border-white/5" />
 
-              {order.orderItems &&
-                order.orderItems.map((item: IOrderItem) => (
-                  <CardContent
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      borderBottom: "1px solid ",
-                    }}
+                {order.orderItems.map((item: IOrderItem, idx: number) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-3 gap-4 items-center px-2 py-3 border-b border-white/5"
+                    style={{ direction: dir }}
                   >
-                    <CardMedia
-                      image={item.productImage}
-                      sx={{ width: "4rem", height: "4rem", marginLeft: "2rem" }}
+                    <div
+                      className="w-16 h-16 bg-contain bg-center bg-no-repeat rounded-xl bg-muted"
+                      style={{
+                        backgroundImage: `url(${item.productImage})`,
+                      }}
                     />
-                    <Typography> {item.productTitle}</Typography>
-                    <Typography sx={{ marginRight: "1.5rem" }}>
-                      {item.quantity} x {item.unitprice} SYP
-                    </Typography>
-                  </CardContent>
+                    <p className="text-center text-sm line-clamp-2">
+                      {item.productTitle}
+                    </p>
+                    <p className={`text-sm font-semibold ${dir === "rtl" ? "text-left" : "text-right"}`}>
+                      {item.quantity} x {item.unitprice.toLocaleString()} SYP
+                    </p>
+                  </div>
                 ))}
 
-              <CardContent
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  paddingX: "2rem",
-                }}
-              >
-                <CardContent sx={{ display: "flex", gap: ".5rem" }}>
-                  <Typography>Total Amount :</Typography>
-                  <Typography>{order.total.toFixed(2)} SYP</Typography>
-                </CardContent>
-                <Typography sx={{ width: "30%" }}>
-                  Address : {order.address}
-                </Typography>
-              </CardContent>
-              <br />
-              <br />
-              <br />
-            </>
-          ))}
-      </Box>
-    </Paper>
+                <div
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mt-4 px-2"
+                  style={{ direction: dir }}
+                >
+                  <p className="font-semibold text-foreground/80">
+                    {t("orders.totalAmount")}:{" "}
+                    <span className="font-bold text-violet-400">
+                      {order.total.toFixed(2)} SYP
+                    </span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("orders.address")}: {order.address}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

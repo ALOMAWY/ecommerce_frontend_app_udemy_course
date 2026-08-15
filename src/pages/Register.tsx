@@ -1,176 +1,233 @@
-import { Box, Button, Paper, Typography } from "@mui/material";
-import TextField from "@mui/material/TextField";
-import React, { useState } from "react";
-import type { IUser } from "../types/user";
-import { BASE_URL } from "../constants/baseurl";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/Auth/AuthContext";
+import { useLang } from "../i18n/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { UserPlus, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { BASE_URL } from "../constants/baseurl";
+import type { IUser } from "../types/user";
 
 const Register = () => {
-  const initialData: IUser = {
+  const [data, setData] = useState<IUser>({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
-  };
-  const [data, setData] = useState<IUser>(initialData);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t, dir } = useLang();
 
   const isFormValid = () => {
     const { firstName, lastName, email, password } = data;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // matches anything@anything.anything
-
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return (
-      firstName.trim().length >= 3 &&
-      lastName.trim().length >= 3 &&
+      firstName.trim().length >= 2 &&
+      lastName.trim().length >= 2 &&
       emailRegex.test(email) &&
       !loading &&
       password.length >= 8
     );
   };
 
-  // Handlers
+  const getFieldErrors = () => {
+    const errors: string[] = [];
+    if (data.firstName.trim() && data.firstName.trim().length < 2)
+      errors.push("First name must be at least 2 characters");
+    if (data.lastName.trim() && data.lastName.trim().length < 2)
+      errors.push("Last name must be at least 2 characters");
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+      errors.push("Enter a valid email address");
+    if (data.password && data.password.length < 8)
+      errors.push("Password must be at least 8 characters");
+    return errors;
+  };
+
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setData({ ...data, [e.target.name]: e.target.value });
+    if (error) setError("");
   };
 
   const onSend = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const fieldErrors = getFieldErrors();
+    if (fieldErrors.length > 0) {
+      const msg = fieldErrors[0];
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+
     setLoading(true);
+    setError("");
 
     try {
       const response = await fetch(`${BASE_URL}/user/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        setError("Unable To Register User, Please Try Deffernt Credientials!");
-        throw new Error("HTTP error! Status: " + response.status);
+        const msg = t("register.error");
+        setError(msg);
+        toast.error(msg);
         return;
       }
 
       const token = await response.json();
-
       if (!token) {
-        setError("Invalid Token");
+        const msg = t("register.errorGeneric");
+        setError(msg);
+        toast.error(msg);
         return;
       }
 
       login(data.email, token);
-
-      setData(initialData);
+      setData({ firstName: "", lastName: "", email: "", password: "" });
+      toast.success("Account created successfully!");
       navigate("/");
-    } catch (error) {
-      console.error(error);
-      setError(`Somthing went Wrong, Try With Safe Info`);
+    } catch {
+      const msg = t("register.errorGeneric");
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Paper sx={{ flex: "1", display: "flex" }}>
-      <Box
-        component="form"
-        onSubmit={onSend}
-        sx={{
-          "& .MuiTextField-root": {
-            width: "100%",
-            padding: "10px 0",
-          },
-          boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          width: { xs: "100%", md: "50%" },
-          border: "1px solid #00000050",
-          borderRadius: "20px",
-          padding: "20px",
-          margin: "auto",
-        }}
-        noValidate
-        autoComplete="off"
-      >
-        <Typography
-          sx={{
-            fontSize: "2rem",
-            textAlign: "center",
-            textTransform: "uppercase",
-            margin: "20px",
-            fontWeight: "900",
-          }}
+    <div className="flex-1 flex items-center justify-center p-6">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center mb-8">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 mb-4 shadow-lg shadow-violet-500/25">
+            <UserPlus className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">{t("register.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {t("register.subtitle")}
+          </p>
+        </div>
+
+        <form
+          onSubmit={onSend}
+          className="flex flex-col gap-5 p-6 rounded-2xl bg-card border border-white/5"
         >
-          Register
-        </Typography>
-        <TextField
-          required
-          id="outlined-required"
-          label="Firstname"
-          name="firstName"
-          value={data.firstName}
-          onChange={onChange}
-        />
-        <TextField
-          required
-          id="outlined-required"
-          label="Lastname"
-          name="lastName"
-          value={data.lastName}
-          onChange={onChange}
-        />
-        <TextField
-          required
-          id="outlined-required"
-          label="Email"
-          name="email"
-          value={data.email}
-          onChange={onChange}
-        />
-        <TextField
-          required
-          id="outlined-password-input"
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          name="password"
-          value={data.password}
-          onChange={onChange}
-        />
-        {error && <Typography sx={{ color: "red" }}>{error}</Typography>}
-        <Button
-          type="submit"
-          disabled={!isFormValid()}
-          variant="contained"
-          sx={{
-            mt: "1rem",
-            padding: "1rem",
-            borderRadius: "5px 5px 20px 20px",
-            fontSize: "1rem",
-            letterSpacing: "4px",
-          }}
-        >
-          Send
-        </Button>{" "}
-        <Typography
-          sx={{
-            color: "green",
-            textDecoration: "underline",
-            textAlign: "center",
-            m: "1rem",
-          }}
-        >
-          <Link to={"/login"}>Already I Have Account</Link>
-        </Typography>
-      </Box>
-    </Paper>
+          <div className="grid grid-cols-2 gap-4" style={{ direction: dir }}>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="firstName" className="text-sm font-medium">
+                {t("register.firstName")}
+              </Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                required
+                value={data.firstName}
+                onChange={onChange}
+                placeholder={dir === "rtl" ? "أحمد" : "John"}
+                className="h-11"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="lastName" className="text-sm font-medium">
+                {t("register.lastName")}
+              </Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                required
+                value={data.lastName}
+                onChange={onChange}
+                placeholder={dir === "rtl" ? "محمد" : "Doe"}
+                className="h-11"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email" className="text-sm font-medium">
+              {t("register.email")}
+            </Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={data.email}
+              onChange={onChange}
+              placeholder="you@example.com"
+              className="h-11"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="password" className="text-sm font-medium">
+              {t("register.password")}
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={data.password}
+                onChange={onChange}
+                placeholder={dir === "rtl" ? "8 أحرف على الأقل" : "Min. 8 characters"}
+                autoComplete="current-password"
+                className="h-11 pr-10"
+                style={dir === "rtl" ? { paddingRight: "0.75rem", paddingLeft: "2.5rem" } : undefined}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors ${
+                  dir === "rtl" ? "left-3 right-auto" : "right-3"
+                }`}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            disabled={!isFormValid()}
+            className="w-full h-11 bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white border-0 shadow-lg shadow-violet-500/25"
+          >
+            {loading ? t("register.creating") : t("register.create")}
+          </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            {t("register.haveAccount")}{" "}
+            <Link
+              to={"/login"}
+              className="text-violet-400 hover:text-violet-300 font-medium transition-colors"
+            >
+              {t("register.signin")}
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
   );
 };
+
 export default Register;
