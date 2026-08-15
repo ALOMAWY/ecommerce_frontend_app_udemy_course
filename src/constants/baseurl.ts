@@ -1,1 +1,1 @@
-export const BASE_URL = "https://ecommerce-backend-app-udemy-course.onrender.com";
+export const BASE_URL = "http://localhost:5000/api/v1";
