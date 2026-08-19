@@ -15,21 +15,24 @@ import Orders from "./pages/Orders";
 import Dashboard from "./pages/Dashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminRoute from "./components/AdminRoute";
+import NotFound from "./pages/NotFound";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   return (
     <>
-      <AuthProvider>
-        <CartProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <CartProvider>
           <BrowserRouter>
             <Navbar />
             <Toaster
               position="top-center"
               toastOptions={{
                 style: {
-                  background: "#1a1a1e",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  color: "#f1f1f6",
+                   background: "#171c1f",
+                   border: "1px solid rgba(215,245,106,0.18)",
+                   color: "#f4f5f2",
                 },
               }}
             />
@@ -48,11 +51,13 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/success_order" element={<OrderSuccess />} />
                 <Route path="/orders" element={<Orders />} />
+              <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
           </BrowserRouter>
-        </CartProvider>
-      </AuthProvider>
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </>
   );
 }

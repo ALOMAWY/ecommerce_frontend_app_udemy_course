@@ -79,7 +79,7 @@ const Login = () => {
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary mb-4 shadow-lg shadow-primary/25">
+          <div className="flex items-center justify-center w-12 h-12 rounded-[1.25rem] bg-primary mb-4 shadow-lg shadow-primary/25">
             <LogIn className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">{t("login.title")}</h1>
@@ -90,7 +90,7 @@ const Login = () => {
 
         <form
           onSubmit={onSend}
-          className="flex flex-col gap-5 p-6 rounded-2xl bg-card border border-white/5"
+          className="flex flex-col gap-5 p-6 rounded-[1.25rem] bg-card border border-white/5"
         >
           <div className="flex flex-col gap-2">
             <Label htmlFor="email" className="text-sm font-medium">
@@ -142,7 +142,7 @@ const Login = () => {
           </div>
 
           {error && (
-            <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+            <p className="text-sm text-destructive bg-destructive/10 rounded-xl px-3 py-2">
               {error}
             </p>
           )}
