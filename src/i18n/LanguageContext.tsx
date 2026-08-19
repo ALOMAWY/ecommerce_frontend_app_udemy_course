@@ -6,6 +6,9 @@ interface ILanguageContext {
   lang: Language;
   setLang: (lang: Language) => void;
   t: (key: string) => string;
+  tCategory: (category?: string) => string;
+  formatNumber: (value: number | string) => string;
+  formatPrice: (value: number | string) => string;
   dir: "ltr" | "rtl";
 }
 
@@ -13,6 +16,9 @@ const LanguageContext = createContext<ILanguageContext>({
   lang: "ar",
   setLang: () => {},
   t: (key: string) => key,
+  tCategory: (category?: string) => category ?? "",
+  formatNumber: (value: number | string) => String(value),
+  formatPrice: (value: number | string) => String(value),
   dir: "rtl",
 });
 
@@ -40,10 +46,38 @@ export const LanguageProvider: FC<PropsWithChildren> = ({ children }) => {
     [lang]
   );
 
+  const tCategory = useCallback(
+    (category?: string): string => {
+      if (!category) return "";
+      const key = `category.${category.trim().toLowerCase()}`;
+      return translations[lang]?.[key] ?? translations.en?.[key] ?? category;
+    },
+    [lang]
+  );
+
   const dir: "ltr" | "rtl" = lang === "ar" ? "rtl" : "ltr";
 
+  const formatNumber = useCallback(
+    (value: number | string): string => {
+      const n = typeof value === "string" ? Number(value) : value;
+      if (Number.isNaN(n)) return String(value);
+      return new Intl.NumberFormat(lang === "ar" ? "ar" : "en-US", {
+        numberingSystem: lang === "ar" ? "arab" : "latn",
+      }).format(n);
+    },
+    [lang]
+  );
+
+  const formatPrice = useCallback(
+    (value: number | string): string =>
+      `${formatNumber(value)} ${lang === "ar" ? "ل.س" : "SYP"}`,
+    [formatNumber, lang]
+  );
+
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t, dir }}>
+    <LanguageContext.Provider
+      value={{ lang, setLang, t, tCategory, formatNumber, formatPrice, dir }}
+    >
       {children}
     </LanguageContext.Provider>
   );

@@ -11,7 +11,7 @@ import type { IOrderItem } from "../types/order";
 
 const Orders = () => {
   const { orders } = useCart();
-  const { t, dir } = useLang();
+  const { t, dir, formatNumber, formatPrice } = useLang();
 
   return (
     <div className="flex-1 p-4 md:p-6">
@@ -54,7 +54,7 @@ const Orders = () => {
                     style={{ direction: dir }}
                   >
                     <div
-                      className="w-16 h-16 bg-contain bg-center bg-no-repeat rounded-xl bg-muted"
+                       className="w-16 h-16 bg-contain bg-center bg-no-repeat rounded-[1.25rem] bg-muted"
                       style={{
                         backgroundImage: `url(${item.productImage})`,
                       }}
@@ -63,7 +63,7 @@ const Orders = () => {
                       {item.productTitle}
                     </p>
                     <p className={`text-sm font-semibold ${dir === "rtl" ? "text-left" : "text-right"}`}>
-                      {item.quantity} x {item.unitprice.toLocaleString()} SYP
+                      {formatNumber(item.quantity)} x {formatPrice(item.unitprice)}
                     </p>
                   </div>
                 ))}
@@ -75,7 +75,7 @@ const Orders = () => {
                   <p className="font-semibold text-foreground/80">
                     {t("orders.totalAmount")}:{" "}
                     <span className="font-bold text-primary">
-                      {order.total.toFixed(2)} SYP
+                      {formatPrice(order.total)}
                     </span>
                   </p>
                   <p className="text-sm text-muted-foreground">

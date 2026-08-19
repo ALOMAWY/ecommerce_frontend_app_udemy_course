@@ -9,37 +9,27 @@ import { useLang } from "../i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, ArrowLeft, Package, Shield } from "lucide-react";
+import { ShoppingCart, ArrowLeft, Package, Shield, Check, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 
 const ProductPage = () => {
   const { id } = useParams();
   const { productsInContext, isAuthenticated } = useAuth();
   const { addItemToCart, cartItems } = useCart();
-  const { t, dir } = useLang();
+  const { t, tCategory, formatNumber, formatPrice } = useLang();
   const navigate = useNavigate();
   const [cartItem, setCartItem] = useState<ICartItem | undefined>();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
 
   useEffect(() => {
-    setCartItem(
-      cartItems.find(
-        (item: ICartItem) =>
-          typeof item.product !== "string" && item.product._id == id
-      )
-    );
+    setCartItem(cartItems.find((item: ICartItem) => typeof item.product !== "string" && item.product._id == id));
   }, [cartItems, id]);
 
   if (!id) return null;
 
-  const productsFromLocalStorage: IProductProps[] = JSON.parse(
-    localStorage.getItem(PRODUCTS_KEY) || "[]"
-  );
-  let product: IProductProps | undefined = productsFromLocalStorage?.find(
-    (p) => p._id == id
-  );
-  if (!product) product = productsInContext?.find((p) => p._id == id);
+  const productsFromLocalStorage: IProductProps[] = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "[]");
+  const product = productsFromLocalStorage.find((p) => p._id == id) || productsInContext?.find((p) => p._id == id);
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
@@ -51,136 +41,46 @@ const ProductPage = () => {
   };
 
   if (!product) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Skeleton className="h-64 w-64 rounded-2xl" />
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-      </div>
-    );
+    return <div className="flex flex-1 items-center justify-center"><div className="flex flex-col items-center gap-4"><Skeleton className="h-64 w-64 rounded-[1.6rem]" /><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-32" /></div></div>;
   }
 
+  const activeImage = selectedImage || product.image;
+  const gallery = product.images?.length ? product.images : [product.image];
+
   return (
-    <div className="flex-1">
-      <div className="container mx-auto px-6 py-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t("back")}
+    <div className="store-shell flex-1">
+      <div className="container mx-auto px-4 py-6 sm:px-6 md:py-10">
+        <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 rounded-full border border-white/[.08] px-4 py-2 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> {t("back")}
         </button>
 
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          <div className="flex flex-col gap-3">
-            <div className="relative aspect-square rounded-2xl bg-muted overflow-hidden border border-white/5">
-              {!imageLoaded && (
-                <Skeleton className="absolute inset-0 rounded-2xl" />
-              )}
-              <div
-                className={`absolute inset-0 bg-contain bg-center bg-no-repeat p-8 transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-                style={{ backgroundImage: `url(${selectedImage || product.image})` }}
-              />
-              <img
-                src={selectedImage || product.image}
-                alt={product.title}
-                className="hidden"
-                onLoad={() => setImageLoaded(true)}
-                onError={() => setImageLoaded(true)}
-              />
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_.95fr] lg:items-start">
+          <section className="soft-surface overflow-hidden p-3 sm:p-5">
+            <div className="product-image relative flex aspect-square items-center justify-center overflow-hidden rounded-[1.25rem] sm:aspect-[1.1/1]">
+              <div className="absolute inset-x-5 top-5 z-[1] flex items-center justify-between text-[10px] font-bold uppercase tracking-[.2em] text-primary/80"><span>{tCategory(product.category) || t("product.techPick")}</span><span>{String(gallery.length).padStart(2, "0")} {t("product.views")}</span></div>
+              {!imageLoaded && <Skeleton className="absolute inset-0 rounded-[1.25rem]" />}
+              <div className={`absolute inset-0 bg-contain bg-center bg-no-repeat p-12 transition-opacity duration-500 ${imageLoaded ? "opacity-100" : "opacity-0"}`} style={{ backgroundImage: `url(${activeImage})` }} />
+              <img src={activeImage} alt={product.title} className="hidden" onLoad={() => setImageLoaded(true)} onError={() => setImageLoaded(true)} />
+              <span className="absolute bottom-5 left-5 rounded-full border border-white/10 bg-background/70 px-3 py-1.5 text-xs text-muted-foreground backdrop-blur-md">{t("product.techHubProduct")}</span>
             </div>
-            {(product.images && product.images.length > 1) && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {product.images.map((url, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => { setSelectedImage(url); setImageLoaded(false); }}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-colors ${
-                      (selectedImage || product.image) === url
-                        ? "border-primary"
-                        : "border-white/10 hover:border-white/30"
-                    }`}
-                  >
-                    <div
-                      className="w-full h-full bg-cover bg-center"
-                      style={{ backgroundImage: `url(${url})` }}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+            <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+              {gallery.map((url, i) => <button key={i} type="button" onClick={() => { setSelectedImage(url); setImageLoaded(false); }} className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[1.25rem] border bg-muted transition-all ${activeImage === url ? "border-primary ring-2 ring-primary/20" : "border-white/10 hover:border-white/30"}`}><div className="absolute inset-0 bg-contain bg-center bg-no-repeat p-2" style={{ backgroundImage: `url(${url})` }} /></button>)}
+            </div>
+          </section>
 
-          <div className="flex flex-col gap-6">
+          <section className="flex flex-col gap-6 lg:px-4 lg:pt-3">
             <div>
-              <Badge className="bg-primary/10 text-primary hover:bg-primary/20 mb-3">
-                {t("home.badge")}
-              </Badge>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                {product.title}
-              </h1>
+              <div className="mb-4 flex items-center justify-between gap-3"><Badge className="bg-primary/10 text-primary hover:bg-primary/20">{product.stock > 0 ? t("product.inStock") : t("product.outOfStock")}</Badge><span className="text-xs font-medium text-muted-foreground">{t("product.sku")} / {product._id.slice(-6).toUpperCase()}</span></div>
+              <h1 className="max-w-2xl text-3xl font-bold leading-[1.08] tracking-[-.04em] text-foreground sm:text-5xl">{product.title}</h1>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">{product.description || t("product.fallbackDescription")}</p>
             </div>
 
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-primary">
-                {product.price.toLocaleString()} SYP
-              </span>
-              <Badge
-                variant={product.stock > 0 ? "default" : "destructive"}
-                className={`${
-                  product.stock > 0
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : ""
-                }`}
-              >
-                {product.stock > 0 ? t("product.inStock") : t("product.outOfStock")}
-              </Badge>
-            </div>
+            <div className="flex items-end justify-between gap-4 border-y border-white/[.08] py-5"><div><p className="mb-1 text-xs uppercase tracking-[.16em] text-muted-foreground">{t("product.price")}</p><p className="text-3xl font-bold tracking-tight text-primary">{formatPrice(product.price)}</p></div><div className="text-right"><p className="text-xs text-muted-foreground">{formatNumber(product.stock)} {t("product.available")}</p><p className="mt-1 flex items-center justify-end gap-1 text-xs font-semibold text-emerald-400"><Check className="h-3.5 w-3.5" /> {t("product.readyToShip")}</p></div></div>
 
-            <p className="text-sm text-muted-foreground">
-              {product.stock} {t("product.available")}
-            </p>
+            <Button size="lg" disabled={product.stock === 0} onClick={handleAddToCart} className="h-14 w-full bg-primary text-base font-bold text-primary-foreground shadow-[0_14px_35px_rgba(215,245,106,.12)] hover:bg-primary/90"><ShoppingCart className="h-5 w-5" />{cartItem ? t("product.inCart") : t("product.addToCart")}<ArrowUpRight className="ml-auto h-5 w-5" /></Button>
 
-            {product.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {product.description}
-              </p>
-            )}
-
-            <div className="flex flex-col gap-3 pt-4 border-t border-white/5">
-              <Button
-                size="lg"
-                disabled={product.stock === 0}
-                onClick={handleAddToCart}
-                className="bg-primary hover:bg-primary/90 text-white border-0 h-12 text-base"
-              >
-                <ShoppingCart className="h-5 w-5 ml-2" />
-                {cartItem
-                  ? t("product.inCart")
-                  : t("product.addToCart")}
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
-                <Package className={`h-5 w-5 text-primary ${dir === "rtl" ? "ml-3" : "mr-3"}`} />
-                <div>
-                  <p className="text-xs font-medium text-foreground/80">{t("product.freeShipping")}</p>
-                  <p className="text-[10px] text-muted-foreground">{t("product.freeShippingDesc")}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
-                <Shield className={`h-5 w-5 text-emerald-400 ${dir === "rtl" ? "ml-3" : "mr-3"}`} />
-                <div>
-                  <p className="text-xs font-medium text-foreground/80">{t("product.securePayment")}</p>
-                  <p className="text-[10px] text-muted-foreground">{t("product.securePaymentDesc")}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+            <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-[1.25rem] border border-white/[.08] bg-white/[.035] p-4"><Package className="mb-5 h-5 w-5 text-primary" /><p className="text-sm font-semibold">{t("product.freeShipping")}</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("product.freeShippingDesc")}</p></div><div className="rounded-[1.25rem] border border-white/[.08] bg-white/[.035] p-4"><Shield className="mb-5 h-5 w-5 text-primary" /><p className="text-sm font-semibold">{t("product.securePayment")}</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("product.securePaymentDesc")}</p></div></div>
+          </section>
         </div>
       </div>
     </div>

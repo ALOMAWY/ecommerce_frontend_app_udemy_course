@@ -13,7 +13,7 @@ export default function ProductInCart({
   image,
 }: IProductProps) {
   const { updateItemInCart, removeItemInCart, cartItems } = useCart();
-  const { t } = useLang();
+  const { t, formatNumber, formatPrice } = useLang();
 
   const product = cartItems.find((item: ICartItem) => {
     if (typeof item.product !== "string") return item.product._id == _id;
@@ -34,7 +34,7 @@ export default function ProductInCart({
   };
 
   return (
-    <div className="group relative flex flex-col rounded-2xl bg-card border border-white/5 overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
+    <div className="group relative flex flex-col rounded-[1.6rem] bg-card border border-white/5 overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
       <div className="relative aspect-[4/3] bg-muted overflow-hidden">
         <div
           className="absolute inset-0 bg-contain bg-center bg-no-repeat p-6"
@@ -47,13 +47,13 @@ export default function ProductInCart({
           {title}
         </h3>
         <span className="text-lg font-bold text-primary">
-          {price.toLocaleString()} SYP
+          {formatPrice(price)}
         </span>
         <p className="text-xs text-muted-foreground">
-          {productQuantity} x {price.toLocaleString()} SYP
+          {formatNumber(productQuantity)} x {formatPrice(price)}
         </p>
         <p className="text-xs text-muted-foreground">
-          {product?.quantity} {t("cart.inCart")}
+          {formatNumber(product?.quantity || 0)} {t("cart.inCart")}
         </p>
       </div>
 
@@ -62,19 +62,19 @@ export default function ProductInCart({
           <Button
             size="icon"
             variant="ghost"
-            className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10"
+            className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10"
             onClick={() => handleUpdate(productQuantity + 1)}
           >
             <Plus className="h-3.5 w-3.5" />
           </Button>
           <span className="w-6 text-center text-sm font-medium">
-            {productQuantity}
+            {formatNumber(productQuantity)}
           </span>
           <Button
             size="icon"
             variant="ghost"
             disabled={productQuantity <= 1}
-            className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="h-8 w-8 rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => handleUpdate(productQuantity - 1)}
           >
             <Minus className="h-3.5 w-3.5" />
@@ -83,7 +83,7 @@ export default function ProductInCart({
         <Button
           size="icon"
           variant="ghost"
-          className="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+          className="h-8 w-8 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={handleRemove}
         >
           <Trash2 className="h-3.5 w-3.5" />

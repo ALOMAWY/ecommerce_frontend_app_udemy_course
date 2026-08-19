@@ -6,7 +6,7 @@ import { ShoppingCart, Trash2 } from "lucide-react";
 
 function InfoBar() {
   const { totalAmount, clearCart, cartItems } = useCart();
-  const { t } = useLang();
+  const { t, formatPrice } = useLang();
   const navigate = useNavigate();
 
   return (
@@ -16,7 +16,7 @@ function InfoBar() {
           <p className="text-sm font-medium text-foreground/80">
             {t("cart.total")}:{" "}
             <span className="font-bold text-foreground">
-              {new Intl.NumberFormat("en-US").format(totalAmount)} SYP
+              {formatPrice(totalAmount)}
             </span>
           </p>
           <Button

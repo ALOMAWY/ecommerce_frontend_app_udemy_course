@@ -19,7 +19,7 @@ import type { ICartItem } from "../types/cart";
 const Checkout = () => {
   const { cartItems, totalAmount, fetchOrders } = useCart();
   const { token } = useAuth();
-  const { t, dir } = useLang();
+  const { t, dir, formatPrice } = useLang();
   const navigate = useNavigate();
 
   const [error, setError] = useState<boolean>(false);
@@ -96,28 +96,28 @@ const Checkout = () => {
                   style={{ direction: dir }}
                 >
                   <div
-                    className="w-16 h-16 bg-contain bg-center bg-no-repeat rounded-xl bg-muted"
+                    className="w-16 h-16 bg-contain bg-center bg-no-repeat rounded-[1.25rem] bg-muted"
                     style={{ backgroundImage: `url(${product.image})` }}
                   />
                   <p className="text-center text-sm line-clamp-2">{product.title}</p>
                   <p className={`text-sm font-semibold ${dir === "rtl" ? "text-left" : "text-right"}`}>
-                    {product.price.toLocaleString()} SYP
+                    {formatPrice(product.price)}
                   </p>
                 </div>
               );
             })}
 
           {error && (
-            <p className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2 mt-4">
+            <p className="text-sm text-destructive bg-destructive/10 rounded-xl px-3 py-2 mt-4">
               {t("error.generic")}
             </p>
           )}
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-2">
             <p className="font-semibold text-foreground/80">
-              {t("checkout.totalAmount")}:{" "}
+{t("checkout.totalAmount")}:{" "}
               <span className="font-bold text-primary">
-                {totalAmount.toFixed(2)} SYP
+                {formatPrice(totalAmount)}
               </span>
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">

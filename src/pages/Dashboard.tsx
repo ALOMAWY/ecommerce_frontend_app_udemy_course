@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/Auth/AuthContext";
 import { useLang } from "../i18n/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -8,20 +8,21 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Pencil, Trash2, Package, X, RefreshCw, Upload } from "lucide-react";
+import { Pencil, Trash2, Package, X, RefreshCw, Eye, Grid2X2, List, ImagePlus } from "lucide-react";
 import { BASE_URL } from "../constants/baseurl";
 import type { IProductProps } from "../types/product";
 
 const Dashboard = () => {
   const { token } = useAuth();
-  const { dir, t } = useLang();
+  const { dir, t, lang, formatNumber, formatPrice } = useLang();
   const [products, setProducts] = useState<IProductProps[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ title: "", description: "", image: "", price: "", stock: "" });
+  const [form, setForm] = useState({ title: "", description: "", category: "", image: "", price: "", stock: "100" });
   const [images, setImages] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [view, setView] = useState<"grid" | "list">("grid");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const headers = {
@@ -29,7 +30,7 @@ const Dashboard = () => {
     Authorization: `Bearer ${token}`,
   };
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const res = await fetch(`${BASE_URL}/product/all`);
       if (!res.ok) throw new Error();
@@ -40,11 +41,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const uploadFiles = async (files: FileList): Promise<string[]> => {
     setUploading(true);
@@ -89,7 +90,7 @@ const Dashboard = () => {
   };
 
   const resetForm = () => {
-    setForm({ title: "", description: "", image: "", price: "", stock: "" });
+    setForm({ title: "", description: "", category: "", image: "", price: "", stock: "100" });
     setImages([]);
     setEditingId(null);
   };
@@ -105,6 +106,7 @@ const Dashboard = () => {
       const body: Record<string, unknown> = {
         title: form.title,
         description: form.description,
+        category: form.category,
         image: form.image || (images.length > 0 ? images[0] : ""),
         images,
         price: Number(form.price),
@@ -133,6 +135,7 @@ const Dashboard = () => {
     setForm({
       title: product.title,
       description: product.description || "",
+      category: product.category || "",
       image: product.image,
       price: String(product.price),
       stock: String(product.stock),
@@ -158,10 +161,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex-1 p-6" style={{ direction: dir }}>
+    <div className="dashboard-shell flex-1 p-4 sm:p-6" style={{ direction: dir }}>
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary shadow-lg shadow-primary/25">
+          <div className="flex items-center justify-center w-12 h-12 rounded-[1.25rem] bg-primary shadow-lg shadow-primary/25">
             <Package className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -176,7 +179,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <Card className="p-6 mb-8 border-white/5">
+        <Card className="dashboard-surface mb-8 p-5 sm:p-6">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-2 md:col-span-2">
@@ -190,6 +193,10 @@ const Dashboard = () => {
                   placeholder={t("dashboard.titlePlaceholder")}
                   className="h-11"
                 />
+              </div>
+              <div className="flex flex-col gap-2">
+<Label htmlFor="category" className="text-sm font-medium">{t("dashboard.category")}</Label>
+                <Input id="category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder={t("dashboard.categoryPlaceholder")} className="h-11" />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
                 <Label htmlFor="description" className="text-sm font-medium">
@@ -207,9 +214,9 @@ const Dashboard = () => {
                 <Label className="text-sm font-medium">
                   {t("dashboard.images")}
                 </Label>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {images.map((url, i) => (
-                    <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 group">
+                    <div key={i} className="relative w-20 h-20 rounded-[1.25rem] overflow-hidden border border-white/10 group">
                       <div
                         className="w-full h-full bg-cover bg-center"
                         style={{ backgroundImage: `url(${url})` }}
@@ -224,14 +231,7 @@ const Dashboard = () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-2">
-                  <Input
-                    id="image"
-                    value={form.image}
-                    onChange={(e) => setForm({ ...form, image: e.target.value })}
-                    placeholder={t("dashboard.imageUrl")}
-                    className="h-11 flex-1"
-                  />
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -245,11 +245,12 @@ const Dashboard = () => {
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="h-11"
+                    className="h-11 w-full sm:w-auto"
                   >
-                    <Upload className="h-4 w-4 ml-2" />
+                    <ImagePlus className="h-4 w-4 ml-2" />
                     {uploading ? t("dashboard.uploading") : t("dashboard.upload")}
                   </Button>
+                  <Input id="image" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder={t("dashboard.imageUrlPlaceholder")} className="h-11 flex-1" />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
@@ -260,12 +261,14 @@ const Dashboard = () => {
                   id="price"
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="1"
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  placeholder="0.00"
-                  className="h-11"
+                  placeholder="25,000"
+                  inputMode="decimal"
+                  className="h-11 pl-16"
                 />
+                <span className="pointer-events-none relative -mt-[2.25rem] mb-[1.25rem] ml-3 w-fit text-xs font-bold text-muted-foreground">{lang === "ar" ? "ل.س" : "SYP"}</span>
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="stock" className="text-sm font-medium">
@@ -278,7 +281,7 @@ const Dashboard = () => {
                   step="1"
                   value={form.stock}
                   onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                  placeholder="0"
+                  placeholder="100"
                   className="h-11"
                 />
               </div>
@@ -311,19 +314,17 @@ const Dashboard = () => {
           </form>
         </Card>
 
-        <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">
             {t("dashboard.allProducts")} ({products.length})
           </h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchProducts}
-            className="text-muted-foreground"
-          >
-            <RefreshCw className="h-4 w-4 ml-2" />
-            {t("dashboard.refresh")}
-          </Button>
+          <div className="flex items-center gap-2">
+<div className="dashboard-toggle flex items-center gap-1 rounded-full p-1">
+              <button type="button" aria-label={t("dashboard.gridView")} onClick={() => setView("grid")} className={`rounded-full p-2 ${view === "grid" ? "dashboard-toggle-active" : "text-muted-foreground"}`}><Grid2X2 className="h-4 w-4" /></button>
+              <button type="button" aria-label={t("dashboard.listView")} onClick={() => setView("list")} className={`rounded-full p-2 ${view === "list" ? "dashboard-toggle-active" : "text-muted-foreground"}`}><List className="h-4 w-4" /></button>
+            </div>
+            <Button variant="ghost" size="sm" onClick={fetchProducts} className="text-muted-foreground"><RefreshCw className="h-4 w-4 ml-2" />{t("dashboard.refresh")}</Button>
+          </div>
         </div>
 
         {loading ? (
@@ -343,13 +344,13 @@ const Dashboard = () => {
             </p>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className={view === "grid" ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" : "space-y-2"}>
             {products.map((product) => (
               <Card
                 key={product._id}
-                className="flex items-center gap-4 p-4 border-white/5 hover:border-white/10 transition-colors"
+                className={`dashboard-product group relative border-white/5 transition-colors ${view === "grid" ? "overflow-hidden p-0" : "flex items-center gap-4 p-4"}`}
               >
-                <div className="w-14 h-14 rounded-xl bg-muted/50 flex-shrink-0 overflow-hidden">
+                <div className={`${view === "grid" ? "aspect-[1.35/1] w-full" : "h-14 w-14"} rounded-[1.25rem] bg-muted/50 flex-shrink-0 overflow-hidden`}>
                   {product.image ? (
                     <div
                       className="w-full h-full bg-contain bg-center bg-no-repeat"
@@ -361,16 +362,18 @@ const Dashboard = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className={`${view === "grid" ? "p-4 pb-3" : "flex-1"} min-w-0`}>
                   <p className="font-medium text-sm truncate">
                     {product.title}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {product.price.toLocaleString()} SYP &middot;{" "}
-                    {product.stock} {t("dashboard.inStock")}
+                    {formatPrice(product.price)} &middot;{" "}
+                    {formatNumber(product.stock)} {t("dashboard.inStock")}
                   </p>
+                  {view === "grid" && <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{product.description || t("dashboard.noDescription")}</p>}
                 </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className={`${view === "grid" ? "border-t border-white/5 px-3 py-2" : ""} flex items-center justify-end gap-1 flex-shrink-0`}>
+                  <Button variant="ghost" size="icon" onClick={() => window.open(`/product/${product._id}`, "_blank")} className="h-9 w-9 text-muted-foreground hover:text-foreground" aria-label={t("dashboard.viewDetails")}><Eye className="h-4 w-4" /></Button>
                   <Button
                     variant="ghost"
                     size="icon"

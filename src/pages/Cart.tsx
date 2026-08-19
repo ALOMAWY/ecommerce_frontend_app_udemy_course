@@ -6,7 +6,7 @@ import { ShoppingBag } from "lucide-react";
 
 const Cart = () => {
   const { cartItems } = useCart();
-  const { t } = useLang();
+  const { t, formatNumber } = useLang();
 
   return (
     <div className="flex-1">
@@ -17,7 +17,7 @@ const Cart = () => {
             <h2 className="text-xl font-bold mb-6 tracking-tight">
               {t("cart.title")}
               <span className="text-muted-foreground text-sm font-normal ml-2">
-                ({cartItems.length} {cartItems.length === 1 ? t("cart.item") : t("cart.items")})
+                ({formatNumber(cartItems.length)} {cartItems.length === 1 ? t("cart.item") : t("cart.items")})
               </span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
