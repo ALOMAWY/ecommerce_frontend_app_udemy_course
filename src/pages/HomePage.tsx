@@ -1,25 +1,27 @@
 import { useCallback, useEffect, useState } from "react";
 import Product from "../components/Product";
+import HeroSlider from "../components/HeroSlider";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IProductProps } from "../types/product";
 import { BASE_URL } from "../constants/baseurl";
 import { useAuth } from "../context/Auth/AuthContext";
 import { PRODUCTS_KEY } from "../context/Auth/AuthProvider";
 import { useLang } from "../i18n/LanguageContext";
-import { Zap, AlertCircle, RefreshCw, LayoutGrid, List } from "lucide-react";
+import { Zap, AlertCircle, RefreshCw, LayoutGrid, List, ShieldCheck, Truck, Images, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type SortKey = "newest" | "oldest" | "name" | "type" | "priceLow" | "priceHigh";
-type ViewMode = "grid" | "list";
+type ViewMode = "grid" | "list" | "gallery";
 
 const HomePage = () => {
   const { setProductsInContext } = useAuth();
-  const { t } = useLang();
+  const { t, tCategory } = useLang();
   const [products, setProducts] = useState<IProductProps[]>([]);
   const [error, setError] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortKey>("newest");
   const [view, setView] = useState<ViewMode>("grid");
+  const [category, setCategory] = useState("all");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -44,7 +46,7 @@ const HomePage = () => {
   }, [fetchData]);
 
   const sortedProducts = useCallback(() => {
-    const list = [...products];
+    const list = products.filter((product) => category === "all" || product.category?.toLowerCase() === category);
     switch (sortBy) {
       case "oldest":
         return list.sort(
@@ -69,13 +71,15 @@ const HomePage = () => {
             new Date(a.createdAt || 0).getTime()
         );
     }
-  }, [products, sortBy]);
+  }, [products, sortBy, category]);
+
+  const categories = Array.from(new Set(products.map((product) => product.category?.trim()).filter(Boolean))) as string[];
 
   if (error) {
     return (
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="text-center max-w-md">
-          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-destructive/10 mx-auto mb-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-[1.25rem] bg-destructive/10 mx-auto mb-4">
             <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
           <p className="text-lg font-semibold mb-2">{t("error.generic")}</p>
@@ -94,74 +98,38 @@ const HomePage = () => {
     );
   }
 
-  return (
-    <div className="flex-1">
-      <div className="relative overflow-hidden border-b border-white/5">
-        <div className="container mx-auto px-6 py-12 md:py-16">
-          <div className="flex items-center gap-3 mb-2">
-            <Zap className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium uppercase tracking-widest text-primary/70">
-              {t("home.badge")}
-            </span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-            {t("home.title")}
-          </h1>
-          <p className="mt-2 text-muted-foreground max-w-xl">
-            {t("home.subtitle")}
-          </p>
+return (
+    <div className="store-shell flex-1">
+      <HeroSlider />
+
+      <div className="container mx-auto px-4 py-8 sm:px-6 md:py-10" id="products">
+        <div className="mb-8 grid grid-cols-1 gap-3 border-b border-white/[.07] pb-7 sm:grid-cols-3">
+          {[{ icon: Truck, title: t("product.freeShipping"), desc: t("product.freeShippingDesc") }, { icon: ShieldCheck, title: t("product.securePayment"), desc: t("product.securePaymentDesc") }, { icon: Zap, title: t("home.curatedTech"), desc: t("home.curatedDesc") }].map(({ icon: Icon, title, desc }) => <div key={title} className="flex items-center gap-3"><Icon className="h-5 w-5 text-primary" /><div><p className="text-sm font-semibold">{title}</p><p className="text-xs text-muted-foreground">{desc}</p></div></div>)}
         </div>
-      </div>
-
-      <div className="container mx-auto px-6 py-8">
         {!loading && (
-          <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="h-9 rounded-lg border border-white/10 bg-card px-3 text-sm text-foreground/80 outline-none transition-colors focus-visible:border-ring cursor-pointer"
-            >
-              <option value="newest">{t("home.sortNewest")}</option>
-              <option value="oldest">{t("home.sortOldest")}</option>
-              <option value="name">{t("home.sortName")}</option>
-              <option value="type">{t("home.sortType")}</option>
-              <option value="priceLow">{t("home.sortPriceLow")}</option>
-              <option value="priceHigh">{t("home.sortPriceHigh")}</option>
-            </select>
-
-            <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-card p-1">
-              <button
-                type="button"
-                onClick={() => setView("grid")}
-                aria-label={t("home.viewGrid")}
-                className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-                  view === "grid"
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setView("list")}
-                aria-label={t("home.viewList")}
-                className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-                  view === "list"
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <List className="h-4 w-4" />
-              </button>
+          <>
+            <div className="mb-5 flex items-center gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+<span className="flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-[.16em] text-muted-foreground"><SlidersHorizontal className="h-4 w-4" /> {t("home.browse")}</span>
+              <button type="button" onClick={() => setCategory("all")} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all ${category === "all" ? "border-primary bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(215,245,106,.12)]" : "border-white/10 bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}>{t("home.allProducts")}</button>
+              {categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item.toLowerCase())} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold capitalize transition-all ${category === item.toLowerCase() ? "border-primary bg-primary text-primary-foreground shadow-[0_8px_20px_rgba(215,245,106,.12)]" : "border-white/10 bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}>{tCategory(item)}</button>)}
             </div>
-          </div>
+            <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)} className="h-10 rounded-full border border-white/10 bg-card px-3 text-sm text-foreground/80 outline-none transition-colors focus-visible:border-ring cursor-pointer">
+                <option value="newest">{t("home.sortNewest")}</option><option value="oldest">{t("home.sortOldest")}</option><option value="name">{t("home.sortName")}</option><option value="type">{t("home.sortType")}</option><option value="priceLow">{t("home.sortPriceLow")}</option><option value="priceHigh">{t("home.sortPriceHigh")}</option>
+              </select>
+              <div className="flex items-center gap-1 rounded-full border border-white/10 bg-card p-1.5 shadow-sm">
+                <button type="button" onClick={() => setView("grid")} aria-label={t("home.viewGrid")} className={`flex h-9 w-10 items-center justify-center rounded-full transition-all ${view === "grid" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}><LayoutGrid className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setView("list")} aria-label={t("home.viewList")} className={`flex h-9 w-10 items-center justify-center rounded-full transition-all ${view === "list" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}><List className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setView("gallery")} aria-label={t("home.galleryView")} className={`flex h-9 w-10 items-center justify-center rounded-full transition-all ${view === "gallery" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}><Images className="h-4 w-4" /></button>
+              </div>
+            </div>
+          </>
         )}
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-3 rounded-2xl bg-card border border-white/5 overflow-hidden p-4">
+              <div key={i} className="flex flex-col gap-3 rounded-[1.25rem] bg-card border border-white/5 overflow-hidden p-4">
                 <Skeleton className="aspect-[4/3] w-full rounded-xl bg-muted" />
                 <Skeleton className="h-4 w-3/4 bg-muted" />
                 <Skeleton className="h-4 w-1/2 bg-muted" />
@@ -175,11 +143,15 @@ const HomePage = () => {
               <Product key={product._id} {...product} view="grid" />
             ))}
           </div>
-        ) : (
+        ) : view === "list" ? (
           <div className="flex flex-col gap-4">
             {sortedProducts().map((product) => (
               <Product key={product._id} {...product} view="list" />
             ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {sortedProducts().map((product) => <Product key={product._id} {...product} view="gallery" />)}
           </div>
         )}
       </div>
